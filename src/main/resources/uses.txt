@@ -1,0 +1,11 @@
+CREATE TABLE users
+(
+    username VARCHAR(128) PRIMARY KEY,
+    firstname VARCHAR(128),
+    lastname VARCHAR(128),
+    birth_date DATE,
+    age INT,
+    role VARCHAR(32)
+);
+
+docker run --name my_postgres -p 5438:5432 -e POSTGRES_USER=my_user -e POSTGRES_PASSWORD=12345 -e POSTGRES_DB=my_db -d postgres

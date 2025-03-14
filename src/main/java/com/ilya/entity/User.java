@@ -14,12 +14,16 @@ import java.time.LocalDate;
 public class User {
 
     @Id
-    private String username;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     private String firstname;
     private String lastname;
     @Column(name = "birth_date")
     private LocalDate birthDate;
-    private Integer age;
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
 }

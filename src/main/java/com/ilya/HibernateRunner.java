@@ -1,9 +1,6 @@
 package com.ilya;
 
-import com.ilya.entity.Company;
-import com.ilya.entity.Role;
-import com.ilya.entity.User;
-import lombok.extern.java.Log;
+import com.ilya.entity.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,32 +16,58 @@ public class HibernateRunner {
 
     public static void main(String[] args) throws SQLException {
         Configuration configuration = new Configuration();
-        configuration.addAnnotatedClass(User.class);
-        configuration.addAnnotatedClass(Company.class);
+
+        configuration.addAnnotatedClass(Employee.class);
+        configuration.addAnnotatedClass(Order.class);
+        configuration.addAnnotatedClass(SparePart.class);
+        configuration.addAnnotatedClass(Vehicle.class);
+
         configuration.configure();
 
-        Company company = Company.builder()
-                .name("Yandex")
+        Vehicle vehicle = Vehicle.builder()
+                .brand("BMW")
+                .model("3")
+                .generation(2018)
                 .build();
 
-        User user = User.builder()
-                .firstname("Petr1")
-                .lastname("Petrov1")
-                .birthDate(LocalDate.of(2000, 1, 2))
-                .role(Role.ADMIN)
-                .company(company)
+        Employee employee = Employee.builder()
+                .name("Yaroslav")
+                .surname("Kozhematko")
+                .dateStart(LocalDate.of(2023, 5, 15))
+                .salary(210_000.1214)
+                .role(Roles.MANAGER)
                 .build();
+
+//        SparePart sparePart = SparePart.builder()
+//                .name("Air filter")
+//                .priceIn(1000.00)
+//                .priceOut(1400.00)
+//                .stock(6)
+//                .vehicleId(new_veh)
+//                .build();
+
+
+
 
         try (SessionFactory sessionFactory = configuration.buildSessionFactory()) {
             Session session1 = sessionFactory.openSession();
             try (session1) {
-                Transaction transaction = session1.beginTransaction();
+                session1.beginTransaction();
+//                new_veh = session1.get(Vehicle.class, 1);
 
-                session1.save(company);
-                session1.save(user);
+                //var employees = session1.get(Employee.class, 1);
+
+                session1.createQuery("UPDATE Employee e SET e.salary = :newSalary WHERE e.id = :employeeId")
+                        .setParameter("newSalary", 250000.0)
+                        .setParameter("employeeId", 1).executeUpdate();
+
+
+
+
+
+                //session1.update(sparePart);
 
                 session1.getTransaction().commit();
-                log.atInfo();
             }
         }
 

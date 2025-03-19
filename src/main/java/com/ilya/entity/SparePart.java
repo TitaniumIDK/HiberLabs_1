@@ -1,5 +1,7 @@
 package com.ilya.entity;
 import lombok.*;
+import org.hibernate.annotations.Fetch;
+
 import javax.persistence.*;
 
 @Data
@@ -28,7 +30,7 @@ public class SparePart {
     //@Column(name = "stock")
     private Integer stock;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vehicle_id")
     private Vehicle vehicleId;
 }

@@ -3,6 +3,7 @@ package com.ilya.entity;
 import lombok.*;
 import javax.persistence.*;
 import java.time.LocalDate;
+import java.util.Set;
 
 
 @Data
@@ -32,6 +33,6 @@ public class Employee {
     @Column(name = "salary", precision = 10, scale = 2)
     private Double salary;
 
-    //@Column(name = "schedule")
-    private String schedule;
+//    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private Set<Schedule> schedules;
 }

@@ -208,18 +208,36 @@ public class HibernateRunner {
             session.save(order);
 
             session.createQuery("UPDATE SparePart s SET s.stock = :newStock WHERE s.id = :sparePartId")
-                    .setParameter("newStock", sparePart.getStock()-1)
+                    .setParameter("newStock", sparePart.getStock() - 1)
                     .setParameter("sparePartId", sparePart.getId()).executeUpdate();
 
             session.createQuery("UPDATE Schedule sch SET " +
-                    (dayPart == 1 ? "sch.firstThird " : dayPart == 2 ? "sch.secondThird " : "sch.thirdThird ") +
-                    " = :BusyType " + "WHERE sch.emp = :employee AND sch.workDate = :datein")
+                            (dayPart == 1 ? "sch.firstThird " : dayPart == 2 ? "sch.secondThird " : "sch.thirdThird ") +
+                            " = :BusyType " + "WHERE sch.emp = :employee AND sch.workDate = :datein")
                     .setParameter("BusyType", BusynessType.BUSY)
                     .setParameter("employee", employee)
                     .setParameter("datein", date)
                     .executeUpdate();
 
             session.getTransaction().commit();
+
+            System.out.println("-------------YOUR ORDER---------------" +
+                    "\n" +
+                    "Today: " + LocalDate.now() +
+                    "\n" +
+                    "Vehicle: " + car.getBrand() + " " + car.getModel() + " " + car.getGeneration() +
+                    "\n" +
+                    "Spare Part: " + sparePart.getName() +
+                    "\n" +
+                    "Price: " + sparePart.getPriceOut() + "$" +
+                    "\n" +
+                    "Mechanic: " + employee.getName() + " " + employee.getSurname() +
+                    "\n" +
+                    "Repair date: " + date +
+                    "\n" +
+                    "Time: " + (dayPart == 1 ? "9:00-12:00" : (dayPart == 2) ? "12:00-15:00" : "15:00-18:00") +
+                    "\n" +
+                    "======================================");
         }
     }
 

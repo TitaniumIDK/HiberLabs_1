@@ -44,7 +44,7 @@ public class HibernateRunner {
             initialSout();
             while (true) {
                 input = reader1.readLine();
-                System.out.println(input);
+                //System.out.println(input);
                 if (input != null && !input.isEmpty() && !inProc) {
                     switchCommand(input);
                 }
@@ -90,17 +90,12 @@ public class HibernateRunner {
             waiting(reader1);
             processCarData(input);
         } else if (s.equalsIgnoreCase("4")) {
-            System.out.println("""
-                    --------------------------------------------------
-                    TYPE AUTO TO REPAIR FROM THIS\
-                                       \s
-                    --------------------------------------------------""");
 
             var carsHere = getAvailableCars();
 
             System.out.println(
                     IntStream.range(0, carsHere.size())
-                            .mapToObj(i -> i + 1
+                            .mapToObj(i -> "\n" + (i + 1)
                                     + "-" + carsHere.get(i).getBrand()
                                     + " " + carsHere.get(i).getModel()
                                     + " " + carsHere.get(i).getGeneration())
@@ -115,7 +110,7 @@ public class HibernateRunner {
             if (sparePartsHere != null) {
                 System.out.println(
                         IntStream.range(0, sparePartsHere.size())
-                                .mapToObj(i -> i + 1 + "-" + sparePartsHere.get(i).getName())
+                                .mapToObj(i -> "\n" + (i + 1) + "-" + sparePartsHere.get(i).getName())
                                 .toList()
                 );
                 System.out.println("Type ID of spare part");
@@ -133,24 +128,25 @@ public class HibernateRunner {
                     if (availableEmployees != null) {
                         System.out.println("Available mechanics");
                         System.out.println(IntStream.range(0, availableEmployees.size())
-                                .mapToObj(i -> i + 1 + "-" + availableEmployees.get(i).getName())
+                                .mapToObj(i -> "\n" + (i + 1) + "-" + availableEmployees.get(i).getName())
                                 .toList());
+                        System.out.println("Type ID of your employee");
                         waiting(reader1);
                         var wantedEmployee = availableEmployees.get(Integer.parseInt(input) - 1);
                         Map<LocalDate, List<BusynessType>> scheduleForEmployee = getScheduleForEmployee(availableEmployees.get(Integer.parseInt(input) - 1));
                         if (scheduleForEmployee != null) {
                             System.out.println("Schedule for " + availableEmployees.get(Integer.parseInt(input) - 1).getName());
-                            System.out.println(scheduleForEmployee);
-                            System.out.println("             9:00-12:00 12:00-15:00 15:00-18:00");
+                            //System.out.println(scheduleForEmployee);
+                            System.out.println("             9:00-12:00(1) 12:00-15:00(2) 15:00-18:00(3)");
                             for (Map.Entry<LocalDate, List<BusynessType>> entry : scheduleForEmployee.entrySet()) {
-                                System.out.printf("%s   %-10s %-10s %-15s%n",
+                                System.out.printf("%s   %-13s %-14s %-13s%n",
                                         entry.getKey(),
-                                        entry.getValue().get(0),
-                                        entry.getValue().get(1),
-                                        entry.getValue().get(2));
+                                        entry.getValue().get(0) == BusynessType.FREE ? "FREE" : "----",
+                                        entry.getValue().get(1) == BusynessType.FREE ? "FREE" : "----",
+                                        entry.getValue().get(2) == BusynessType.FREE ? "FREE" : "----");
                             }
                             System.out.println("Type time in next format:" + "\n" +
-                                    "YYYY-MM-DD *number of day part*");
+                                    "YYYY-MM-DD *number of day part*" + "\nExample: <2024-05-26 3>");
                             waiting(reader1);
 
                             Pattern pattern = Pattern.compile("^(\\d{4})-(\\d{2})-(\\d{2}) ([1-3])$");

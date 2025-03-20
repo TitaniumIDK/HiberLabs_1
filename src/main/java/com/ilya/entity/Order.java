@@ -22,11 +22,11 @@ public class Order {
     private Vehicle vehicle;
 
     @ManyToOne
-    @JoinColumn(name = "spare_part_id", nullable = false)
+    @JoinColumn(name = "spare_part", nullable = false)
     private SparePart sparePart;
 
     @ManyToOne
-    @JoinColumn(name = "manager", nullable = false)
+    @JoinColumn(name = "manager")
     private Employee manager;
 
     @ManyToOne

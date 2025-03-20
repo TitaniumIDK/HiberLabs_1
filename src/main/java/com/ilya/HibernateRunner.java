@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -53,25 +52,28 @@ public class HibernateRunner {
         }
     };
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         reader.run();
+        initialSout();
+        waiting(reader1);
+        switchCommand(input);
     }
 
     public static void initialSout() {
         System.out.println("""
 
                 ------------ Welocome to AUTO SERVICE ------------
-                                
+                               \s
                 TYPE ON OF THE FOLLOWING COMMANDS
-                                
+                               \s
                 1 - ADD NEW CAR\
-                                
+                               \s
                 2 - ADD NEW SPARE PART [NOT DONE YET]\
-                                
+                               \s
                 3 - ADD NEW EMPLOYEE [NOT DONE YET]\
-                                
-                4 - IVAN TASK\
-                                
+                               \s
+                4 - CREATE ORDER (IVAN TASK)\
+                               \s
                 --------------------------------------------------""");
     }
 
@@ -81,9 +83,9 @@ public class HibernateRunner {
             System.out.println("""
                     --------------------------------------------------
                     TYPE NEW AUTO IN NEXT FORMAT\
-                                        
+                                       \s
                     brand-model-generation\
-                                       
+                                      \s
                     --------------------------------------------------""");
             waiting(reader1);
             processCarData(input);
@@ -95,48 +97,132 @@ public class HibernateRunner {
                     --------------------------------------------------""");
 
             var carsHere = getAvailableCars();
-            carsHere.forEach(System.out::println);
-            System.out.println("Type ID of your auto");
-            waiting(reader1);
-            var sparePartsHere = getAvailableSpareParts(carsHere.get(Integer.parseInt(input) - 1));
-            //assert sparePartsHere != null;
+
             System.out.println(
-                    IntStream.range(0, sparePartsHere.size())
-                            .mapToObj(i -> i+1 + "-" + sparePartsHere.get(i).getName())
+                    IntStream.range(0, carsHere.size())
+                            .mapToObj(i -> i + 1
+                                    + "-" + carsHere.get(i).getBrand()
+                                    + " " + carsHere.get(i).getModel()
+                                    + " " + carsHere.get(i).getGeneration())
                             .toList()
             );
-            System.out.println("Type ID of spare part");
-            waiting(reader1);
-            SparePart wantedSparePart = sparePartsHere.get(Integer.parseInt(input) - 1);
-            System.out.println(
-                    "SPARE PART: " + wantedSparePart.getName() +
-                            "\nCOSTS: " + wantedSparePart.getPriceOut() + " $" +
-                            "\nSTOCK: " + wantedSparePart.getStock() + " p."
-            );
-            System.out.println("Want to continue? (Y/N)");
-            waiting(reader1);
-            if (input.equalsIgnoreCase("Y")) {
 
-                System.out.println("Available mechanics");
-                List<Employee> availableEmployees = getAvailableEmployees(Roles.MECHANIC);
-                System.out.println(availableEmployees);
-                waiting(reader1);
+            System.out.println("Type ID of your auto");
+            waiting(reader1);
+            Vehicle wantedCar = carsHere.get(Integer.parseInt(input) - 1);
+            var sparePartsHere = getAvailableSpareParts(carsHere.get(Integer.parseInt(input) - 1));
+
+            if (sparePartsHere != null) {
                 System.out.println(
-                        getScheduleForEmployee(availableEmployees.get(Integer.parseInt(input) - 1))
+                        IntStream.range(0, sparePartsHere.size())
+                                .mapToObj(i -> i + 1 + "-" + sparePartsHere.get(i).getName())
+                                .toList()
                 );
+                System.out.println("Type ID of spare part");
+                waiting(reader1);
+                SparePart wantedSparePart = sparePartsHere.get(Integer.parseInt(input) - 1);
+                System.out.println(
+                        "SPARE PART: " + wantedSparePart.getName() +
+                                "\nCOSTS: " + wantedSparePart.getPriceOut() + " $" +
+                                "\nSTOCK: " + wantedSparePart.getStock() + " p."
+                );
+                System.out.println("Want to continue? (Y/N)");
+                waiting(reader1);
+                if (input.equalsIgnoreCase("Y")) {
+                    List<Employee> availableEmployees = getAvailableEmployees(Roles.MECHANIC);
+                    if (availableEmployees != null) {
+                        System.out.println("Available mechanics");
+                        System.out.println(IntStream.range(0, availableEmployees.size())
+                                .mapToObj(i -> i + 1 + "-" + availableEmployees.get(i).getName())
+                                .toList());
+                        waiting(reader1);
+                        var wantedEmployee = availableEmployees.get(Integer.parseInt(input) - 1);
+                        Map<LocalDate, List<BusynessType>> scheduleForEmployee = getScheduleForEmployee(availableEmployees.get(Integer.parseInt(input) - 1));
+                        if (scheduleForEmployee != null) {
+                            System.out.println("Schedule for " + availableEmployees.get(Integer.parseInt(input) - 1).getName());
+                            System.out.println(scheduleForEmployee);
+                            System.out.println("             9:00-12:00 12:00-15:00 15:00-18:00");
+                            for (Map.Entry<LocalDate, List<BusynessType>> entry : scheduleForEmployee.entrySet()) {
+                                System.out.printf("%s   %-10s %-10s %-15s%n",
+                                        entry.getKey(),
+                                        entry.getValue().get(0),
+                                        entry.getValue().get(1),
+                                        entry.getValue().get(2));
+                            }
+                            System.out.println("Type time in next format:" + "\n" +
+                                    "YYYY-MM-DD *number of day part*");
+                            waiting(reader1);
 
-            } else {
-                inProc = false;
-                initialSout();
-                return;
+                            Pattern pattern = Pattern.compile("^(\\d{4})-(\\d{2})-(\\d{2}) ([1-3])$");
+                            Matcher matcher = pattern.matcher(input);
+                            if (matcher.matches()) {
+                                LocalDate date = LocalDate.parse(matcher.group(1) + "-" + matcher.group(2) + "-" + matcher.group(3));
+                                int number = Integer.parseInt(matcher.group(4));
+
+                                if (scheduleForEmployee.containsKey(date)) {
+                                    System.out.println("LocalDate: " + date);
+                                    System.out.println("Number: " + number);
+                                    if (scheduleForEmployee.get(date)
+                                            .get(number - 1)
+                                            .equals(BusynessType.FREE)) {
+                                        System.out.println("Want to create order?" + "\n"
+                                                + date + " " + (number == 1 ? "9-12" : (number == 2) ? "12-15" : "15-18")
+                                                + "\n" + "(Y/N)");
+                                        waiting(reader1);
+                                        if (input.equalsIgnoreCase("Y")) {
+                                            CreateOrder(wantedCar, wantedSparePart, wantedEmployee, date, number);
+                                        }
+                                    } else {
+                                        System.out.println("He is not free for that choosing");
+                                    }
+                                } else {
+                                    System.out.println("Incorrect date");
+                                }
+                            } else {
+                                System.out.println("Incorrect input format: " + input);
+                            }
+
+                        }
+                    }
+                }
             }
-
         } else {
             System.out.println("Unsupported command\n");
         }
         inProc = false;
         initialSout();
     }
+
+    private static void CreateOrder(Vehicle car, SparePart sparePart, Employee employee, LocalDate date, Integer dayPart) {
+        var session = configurator.getSession();
+        try (session) {
+            Order order = Order.builder()
+                    .orderDate(LocalDate.now())
+                    .vehicle(car)
+                    .master(employee)
+                    .sparePart(sparePart)
+                    .status(Status.NEW)
+                    .build();
+
+            session.beginTransaction();
+            session.save(order);
+
+            session.createQuery("UPDATE SparePart s SET s.stock = :newStock WHERE s.id = :sparePartId")
+                    .setParameter("newStock", sparePart.getStock()-1)
+                    .setParameter("sparePartId", sparePart.getId()).executeUpdate();
+
+            session.createQuery("UPDATE Schedule sch SET " +
+                    (dayPart == 1 ? "sch.firstThird " : dayPart == 2 ? "sch.secondThird " : "sch.thirdThird ") +
+                    " = :BusyType " + "WHERE sch.emp = :employee AND sch.workDate = :datein")
+                    .setParameter("BusyType", BusynessType.BUSY)
+                    .setParameter("employee", employee)
+                    .setParameter("datein", date)
+                    .executeUpdate();
+
+            session.getTransaction().commit();
+        }
+    }
+
 
     private static Map<LocalDate, List<BusynessType>> getScheduleForEmployee(Employee employee) {
         Map<LocalDate, List<BusynessType>> schedule;
@@ -148,7 +234,7 @@ public class HibernateRunner {
                     .setParameter("employee", employee)
                     .list();
             if (scheduleAll.isEmpty()) {
-                System.out.println("No mechanics found in the database.");
+                System.out.println("VSE ZANYATO U NEGO");
                 return null;
             }
             session.getTransaction().commit();
@@ -160,7 +246,7 @@ public class HibernateRunner {
         return schedule;
     }
 
-    private static List<Employee> getAvailableEmployees(Roles roles){
+    private static List<Employee> getAvailableEmployees(Roles roles) {
         List<Employee> emp;
         var session = configurator.getSession();
         try (session) {
@@ -169,7 +255,7 @@ public class HibernateRunner {
                     .setParameter("someRole", roles)
                     .list();
             if (emp.isEmpty()) {
-                System.out.println("No mechanics found in the database.");
+                System.out.println("No " + roles + "found in the database.");
                 return null;
             }
             session.getTransaction().commit();
@@ -240,7 +326,6 @@ public class HibernateRunner {
                 session1.merge(newCar);
                 System.out.println("New car added: " + newCar);
             } else {
-                // Обновляем существующую запись
                 System.out.println("Car already exists: " + existingCar);
             }
 
@@ -254,23 +339,4 @@ public class HibernateRunner {
             input = reader1.readLine();
         }
     }
-
-//    public static void processCommand(String command) {
-//        // Здесь вы можете обрабатывать введенную команду
-//        System.out.println("Received command: " + command);
-//
-//
-//        Vehicle vehicle = Vehicle.builder()
-//                .brand("BMW")
-//                .model("3")
-//                .generation(2018)
-//                .build();
-//
-//        try (session1) {
-//            session1.beginTransaction();
-//            //var schedules = session1.get(Schedule.class, 1);
-//            session1.save(vehicle);
-//            session1.getTransaction().commit();
-//        }
-//    }
 }

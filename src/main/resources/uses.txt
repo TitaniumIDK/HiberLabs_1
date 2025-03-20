@@ -1,12 +1,20 @@
 
 docker run --name my_postgres -p 5438:5432 -e POSTGRES_USER=my_user -e POSTGRES_PASSWORD=12345 -e POSTGRES_DB=my_db -d postgres
 
-
+--DROP TABLE Roles CASCADE;
 DROP TABLE Vehicles CASCADE;
 DROP TABLE Employees CASCADE;
 DROP TABLE SpareParts CASCADE;
 DROP TABLE Orders CASCADE;
 DROP TABLE Schedule CASCADE;
+
+
+
+-- Таблица для ролей
+--CREATE TABLE Roles (
+  --                     id SERIAL PRIMARY KEY,
+    --                   role_name VARCHAR(50) NOT NULL
+--);
 
 -- Таблица для работников
 CREATE TABLE Employees (
@@ -42,13 +50,11 @@ CREATE TABLE Orders (
                         id SERIAL PRIMARY KEY,
                         order_date DATE NOT NULL,
                         vehicle_id INTEGER NOT NULL,
-                        employee_id INTEGER NOT NULL,
                         spare_part INTEGER NOT NULL,
-                        manager INTEGER NOT NULL,
+                        manager INTEGER,
                         master INTEGER NOT NULL,
                         status VARCHAR(50) NOT NULL,
                         FOREIGN KEY (vehicle_id) REFERENCES Vehicles(id),
-                        FOREIGN KEY (employee_id) REFERENCES Employees(id),
                         FOREIGN KEY (spare_part) REFERENCES SpareParts(id),
                         FOREIGN KEY (manager) REFERENCES Employees(id),
                         FOREIGN KEY (master) REFERENCES Employees(id)
@@ -88,10 +94,10 @@ INSERT INTO SpareParts (name, vehicle_id, price_in, price_out, stock) VALUES
                                                                        ('Engine', 3, 800.00, 1200.00, 10);
 
 -- Добавление данных в таблицу Orders
-INSERT INTO Orders (order_date, vehicle_id, employee_id, spare_part, manager, master, status) VALUES
-                                                                                                  ('2023-04-15', 1, 2, 1, 1, 2, 'FINISHED'),
-                                                                                                  ('2023-05-20', 2, 1, 2, 1, 3, 'IN_PROCESS'),
-                                                                                                  ('2023-06-01', 3, 3, 3, 2, 2, 'NEW');
+INSERT INTO Orders (order_date, vehicle_id, spare_part, manager, master, status) VALUES
+                                                                                                  ('2023-04-15', 1, 1, 1, 2, 'FINISHED'),
+                                                                                                  ('2023-05-20', 2, 2, 1, 3, 'IN_PROCESS'),
+                                                                                                  ('2023-06-01', 3, 3, 2, 2, 'NEW');
 
 INSERT INTO Schedule (emp_id, work_date, first_third, second_third, third_third)
 VALUES
